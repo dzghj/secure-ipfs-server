@@ -17,6 +17,8 @@
     "ethers": "^6.15.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "sequelize": "^6.37.7",
+    "sqlite3": "^5.1.7",
     "web3.storage": "^4.5.5"
   }
 }

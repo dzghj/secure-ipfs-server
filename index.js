@@ -5,12 +5,12 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { ethers } from "ethers";
 import dotenv from "dotenv";
-dotenv.config();
-import { ethers } from "ethers";
 import uploadRouter from "./upload.js";
 import { FileRecord } from "./db.js";
-import { Web3Storage, File } from "web3.storage";
-import authRoutes, { auth } from "./auth.js";
+import { Web3Storage } from "web3.storage";
+import authRoutes from "./auth.js";
+
+dotenv.config();
 
 
 
@@ -52,9 +52,10 @@ app.post("/api/login", (req, res) => {
   res.json({ token });
 });
 
-function auth(req, res, next) {
+function authMiddleware(req, res, next) {
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) return res.status(403).json({ message: "No token" });
+
   try {
     req.user = jwt.verify(token, SECRET);
     next();
@@ -62,6 +63,7 @@ function auth(req, res, next) {
     res.status(401).json({ message: "Invalid token" });
   }
 }
+
 
 // ====== REGISTER CID ======
 app.post("/api/registerCID", auth, async (req, res) => {
@@ -110,27 +112,11 @@ app.get("/api/admin/files", auth, async (req, res) => {
   //
   const web3Client = new Web3Storage({ token: process.env.WEB3_STORAGE_TOKEN });
 
-app.post("/api/registerCID", auth, async (req, res) => {
-  const { cid, filename } = req.body;
-  const fileRec = await FileRecord.findOne({ where: { filename, userId: req.user.id } });
-  if (!fileRec) return res.status(404).json({ message: "File not found" });
-
-  try {
-    const tx = await contract.registerFile(req.user.id, cid, filename);
-    await tx.wait();
-
-    fileRec.cid = cid;
-    fileRec.status = "registered";
-    await fileRec.save();
-
-    res.json({ success: true, txHash: tx.hash });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Blockchain registration failed" });
-  }
-});
 
 
-app.listen(4000, () => console.log("✅ Server running on port 4000"));
-
+  const PORT = process.env.PORT || 4000;
+  app.listen(PORT, () => {
+    console.log(`✅ Server running on port ${PORT}`);
+  });
+  
 

@@ -46,4 +46,22 @@ export function auth(req, res, next) {
   }
 }
 
+// POST /api/keyholder/publickey
+// Body: { publicKeyPem: "-----BEGIN PUBLIC KEY-----...." }
+router.post("/keyholder/publickey", authMiddleware, async (req, res) => {
+  // auth middleware should populate req.user with { role, id, email, assignedUserId }
+  if (!req.user || req.user.role !== "keyholder") return res.status(403).json({ message: "Forbidden" });
+
+  const { publicKeyPem } = req.body;
+  if (!publicKeyPem) return res.status(400).json({ message: "publicKeyPem required" });
+
+  const kh = await Keyholder.findByPk(req.user.id);
+  if (!kh) return res.status(404).json({ message: "Keyholder not found" });
+
+  kh.publicKey = publicKeyPem;
+  await kh.save();
+  res.json({ success: true, message: "Public key saved" });
+});
+
+
 export default router;

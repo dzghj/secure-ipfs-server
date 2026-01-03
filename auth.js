@@ -48,7 +48,7 @@ export function auth(req, res, next) {
 
 // POST /api/keyholder/publickey
 // Body: { publicKeyPem: "-----BEGIN PUBLIC KEY-----...." }
-router.post("/keyholder/publickey", authMiddleware, async (req, res) => {
+router.post("/keyholder/publickey", auth, async (req, res) => {
   // auth middleware should populate req.user with { role, id, email, assignedUserId }
   if (!req.user || req.user.role !== "keyholder") return res.status(403).json({ message: "Forbidden" });
 

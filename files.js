@@ -2,6 +2,7 @@ import express from "express";
 import fetch from "node-fetch"; // npm i node-fetch@2 or use built-in fetch in newer node
 import { FileRecord, AccessLog } from "./db.js";
 import { ethers } from "ethers";
+import { auth } from "./auth.js";
 const router = express.Router();
 
 /**
@@ -64,7 +65,7 @@ export default router;
 // Authorization: owner JWT
 import crypto from "crypto";
 
-router.post("/owner/share-key", authMiddleware, async (req, res) => {
+router.post("/owner/share-key", auth, async (req, res) => {
   try {
     // must be owner
     const owner = req.user;

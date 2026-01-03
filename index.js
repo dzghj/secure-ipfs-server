@@ -30,7 +30,24 @@ const users = [
 
 const SECRET = process.env.JWT_SECRET || "supersecret";
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
+if (!PRIVATE_KEY) {
+  throw new Error("PRIVATE_KEY is missing");
+}
+
+if (!/^0x[0-9a-fA-F]{64}$/.test(PRIVATE_KEY)) {
+  throw new Error("PRIVATE_KEY format invalid");
+}
+
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
+
+if (!CONTRACT_ADDRESS) {
+  throw new Error("CONTRACT_ADDRESS is missing");
+}
+
+if (!ethers.isAddress(CONTRACT_ADDRESS)) {
+  throw new Error("CONTRACT_ADDRESS is not a valid Ethereum address");
+}
+/*  DISABLE BLOCK CHAIN now 
 const PROVIDER_URL = process.env.PROVIDER_URL;
 
 // Set up blockchain connection (using Infura, Alchemy, etc.)
@@ -40,7 +57,7 @@ const abi = [
   "function registerFile(uint256 userId, string cid, string filename) public"
 ];
 const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, wallet);
-
+*/
 // ====== AUTH ======
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body;

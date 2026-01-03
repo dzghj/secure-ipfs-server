@@ -47,9 +47,24 @@ if (!CONTRACT_ADDRESS) {
 if (!ethers.isAddress(CONTRACT_ADDRESS)) {
   throw new Error("CONTRACT_ADDRESS is not a valid Ethereum address");
 }
+
+
+
+const PROVIDER_URL = null;
+
+let contract = null;
+
+if (PRIVATE_KEY && CONTRACT_ADDRESS && PROVIDER_URL) {
+  try {
+    const provider = new ethers.JsonRpcProvider(PROVIDER_URL);
+    const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
+    contract = new ethers.Contract(CONTRACT_ADDRESS, abi, wallet);
+  } catch (e) {
+    console.warn("⚠️ Blockchain disabled:", e.message);
+  }
+}
 /*  DISABLE BLOCK CHAIN now 
 const PROVIDER_URL = process.env.PROVIDER_URL;
-
 // Set up blockchain connection (using Infura, Alchemy, etc.)
 const provider = new ethers.JsonRpcProvider(PROVIDER_URL);
 const wallet = new ethers.Wallet(PRIVATE_KEY, provider);

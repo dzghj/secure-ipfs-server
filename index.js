@@ -8,7 +8,7 @@ import dotenv from "dotenv";
 import uploadRouter from "./upload.js";
 import { FileRecord } from "./db.js";
 import { Web3Storage } from "web3.storage";
-import authRoutes from "./auth.js";
+import authRoutes, { auth } from "./auth.js";
 
 dotenv.config();
 

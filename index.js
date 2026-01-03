@@ -30,13 +30,7 @@ const users = [
 
 const SECRET = process.env.JWT_SECRET || "supersecret";
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
-if (!PRIVATE_KEY) {
-  throw new Error("PRIVATE_KEY is missing");
-}
 
-if (!/^0x[0-9a-fA-F]{64}$/.test(PRIVATE_KEY)) {
-  throw new Error("PRIVATE_KEY format invalid");
-}
 
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
 

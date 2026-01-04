@@ -36,21 +36,20 @@ router.post("/login", async (req, res) => {
 */
 // TEST LOGIN (always succeeds)
 router.post("/login", async (req, res) => {
-  const { email } = req.body;
+  const email = req.body?.email || "test@example.com";
 
-  const fakeUser = {
-    id: 1,
-    email: email || "test@example.com",
-    role: "user"
-  };
-
-  const token = jwt.sign(fakeUser, SECRET, { expiresIn: "1d" });
+  const token = jwt.sign(
+    { id: 1, email, role: "user" },
+    SECRET,
+    { expiresIn: "1d" }
+  );
 
   res.json({
     token,
-    user: fakeUser
+    user: { id: 1, email }
   });
 });
+
 
 
 // Auth middleware

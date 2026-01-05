@@ -24,8 +24,16 @@ router.post("/register", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
+  console.log("User req.body ",req.body);
   const user = await User.findOne({ where: { email } });
-  if (!user) return res.status(401).json({ message: "Invalid credentials" });
+  //if (!user) return res.status(401).json({ message: "Invalid credentials" });
+  if (!user) {
+    console.log("❌ User not found");
+   // return res.status(401).json({ message: "Invalid credentials" });
+  if (!user) {
+  } else {
+    console.log("✅ User found:", user.email);
+  }
 
   const valid = bcrypt.compareSync(password, user.passwordhash);
   if (!valid) return res.status(401).json({ message: "Invalid credentials" });

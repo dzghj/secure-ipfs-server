@@ -21,7 +21,7 @@ router.post("/register", async (req, res) => {
 });
 
 // Login
-/*
+
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ where: { email } });
@@ -33,7 +33,7 @@ router.post("/login", async (req, res) => {
   const token = jwt.sign({ id: user.id, email: user.email }, SECRET, { expiresIn: "1d" });
   res.json({ token, user: { id: user.id, email: user.email } });
 });
-*/
+/*
 // TEST LOGIN (always succeeds)
 router.post("/login", async (req, res) => {
   const email = req.body?.email || "test@example.com";
@@ -49,7 +49,7 @@ router.post("/login", async (req, res) => {
     user: { id: 1, email }
   });
 });
-
+*/
 
 
 // Auth middleware

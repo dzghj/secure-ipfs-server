@@ -71,7 +71,7 @@ const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, wallet);
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
   const user = users.find(u => u.email === email);
-  if (!user || !bcrypt.compareSync(password, user.password)) {
+  if (!user || !bcrypt.compareSync(password, user.passwordhash)) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
   const token = jwt.sign({ id: user.id, email: user.email }, SECRET, { expiresIn: "1d" });

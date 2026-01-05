@@ -2,7 +2,8 @@ import { Sequelize, DataTypes } from "sequelize";
 import dotenv from "dotenv";
 dotenv.config();
 
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
+//export const sequelize = new Sequelize(process.env.DATABASE_URL, {// for test-db.js
+ const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: "postgres",
   protocol: "postgres",
   logging: false,

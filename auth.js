@@ -30,7 +30,6 @@ router.post("/login", async (req, res) => {
   if (!user) {
     console.log("❌ User not found");
    // return res.status(401).json({ message: "Invalid credentials" });
-  if (!user) {
   } else {
     console.log("✅ User found:", user.email);
   }

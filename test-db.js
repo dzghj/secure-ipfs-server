@@ -53,3 +53,37 @@ async function findUser() {
 //createTestUser();
 //findUser();
 //testPassword();
+async function testLogin() {
+    try {
+      console.log("🔌 Connecting to database...");
+      await sequelize.authenticate();
+      console.log("✅ DB connected");
+  
+      const email = "test@test.com";       // CHANGE to existing email
+      const password = "123456";         // CHANGE to test password
+  
+      console.log("🔍 Looking for user:", email);
+  
+      const user = await User.findOne({ where: { email } });
+  
+      if (!user) {
+        console.log("❌ User not found");
+        return;
+      }
+  
+      console.log("✅ User found:", user.email);
+      console.log("🔑 Stored hash:", user.passwordHash);
+  
+      const valid = bcrypt.compareSync(password, user.passwordHash);
+  
+      console.log("🔐 Password valid?", valid);
+  
+    } catch (err) {
+      console.error("❌ Error:", err);
+    } finally {
+      await sequelize.close();
+      console.log("🔒 DB connection closed");
+    }
+  }
+  
+  testLogin();

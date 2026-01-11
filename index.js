@@ -127,16 +127,40 @@ app.get("/api/admin/files", auth, async (req, res) => {
     res.status(500).json({ message: "Failed to fetch admin data due to server error" });
   }
 });
-  // ======= USER DASHBOARD =======
-  app.get("/api/myfiles", auth, async (req, res) => {
-    try {
-      const files = await contract.getUserFiles(req.user.id);
-      res.json(files);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Failed to fetch user files" });
-    }
-  });
+ // ======= USER DASHBOARD =======
+app.get("/api/myfiles", auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    /*
+    // 🔒 REAL LOGIC (ENABLE LATER)
+    const files = await contract.getUserFiles(userId);
+    return res.json(files);
+    */
+
+    // 🧪 TESTING LOGIC (ACTIVE FOR NOW)
+    const files = [
+      {
+        fileName: `User_${userId}_File_1.txt`,
+        cid: `cid_user_${userId}_1`,
+        timestamp: Math.floor(Date.now() / 1000),
+      },
+      {
+        fileName: `User_${userId}_File_2.txt`,
+        cid: `cid_user_${userId}_2`,
+        timestamp: Math.floor(Date.now() / 1000),
+      },
+    ];
+
+    res.json(files);
+  } catch (err) {
+    console.error("Error fetching user files:", err);
+    res.status(500).json({
+      message: "Failed to fetch user files",
+    });
+  }
+});
+
   //
   const web3Client = new Web3Storage({ token: process.env.WEB3_STORAGE_TOKEN });
 

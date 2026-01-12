@@ -2,6 +2,8 @@ import express from "express";
 import { User } from "./db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer";
+import crypto from "crypto";
 
 const router = express.Router();
 const SECRET = process.env.JWT_SECRET || "supersecret";
@@ -132,20 +134,20 @@ router.post("/forgot-password", async (req, res) => {
 // Reset password
 router.post("/reset-password", async (req, res) => {
   const { token, newPassword } = req.body;
+
   const user = await User.findOne({ where: { resetToken: token } });
   if (!user) return res.status(400).json({ message: "Invalid token" });
 
   if (Date.now() > user.resetTokenExpiry)
     return res.status(400).json({ message: "Token expired" });
 
-  user.password = bcrypt.hashSync(newPassword, 8);
+  user.passwordHash = bcrypt.hashSync(newPassword, 8);
   user.resetToken = null;
   user.resetTokenExpiry = null;
-  await user.save();
 
+  await user.save();
   res.json({ message: "Password has been reset successfully" });
 });
-
 
 // Auth middleware
 export function auth(req, res, next) {

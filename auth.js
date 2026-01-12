@@ -78,6 +78,73 @@ router.post("/login", async (req, res) => {
   });
 });
 */
+// create transporter for emails
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // fetch user
+    const user = await User.findOne({ where: { email } });
+    if (!user) return res.status(404).json({ message: "No user with that email" });
+
+    // generate reset token and expiry
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const expiry = Date.now() + 15 * 60 * 1000; // 15 minutes
+
+    // assign to user
+    user.resetToken = resetToken;
+    user.resetTokenExpiry = expiry;
+
+    // save user
+    await user.save();
+
+    // construct reset link
+    const clientUrl = process.env.CLIENT_URL.replace(/\/$/, ""); // remove trailing slash
+    const resetLink = `${clientUrl}/reset-password/${resetToken}`;
+
+    // send email
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Password Reset Request",
+      html: `
+        <p>You requested a password reset.</p>
+        <p><a href="${resetLink}">Click here</a> to reset your password. 
+        This link expires in 15 minutes.</p>
+      `,
+    });
+
+    res.json({ message: "Password reset email sent" });
+
+  } catch (err) {
+    console.error("❌ Forgot password route failed:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+// Reset password
+router.post("/reset-password", async (req, res) => {
+  const { token, newPassword } = req.body;
+  const user = await User.findOne({ where: { resetToken: token } });
+  if (!user) return res.status(400).json({ message: "Invalid token" });
+
+  if (Date.now() > user.resetTokenExpiry)
+    return res.status(400).json({ message: "Token expired" });
+
+  user.password = bcrypt.hashSync(newPassword, 8);
+  user.resetToken = null;
+  user.resetTokenExpiry = null;
+  await user.save();
+
+  res.json({ message: "Password has been reset successfully" });
+});
 
 
 // Auth middleware

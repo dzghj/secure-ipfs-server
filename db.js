@@ -9,11 +9,21 @@ export const sequelize = new Sequelize(process.env.DATABASE_URL, {
   logging: false,
 });
 
-export const User = sequelize.define("User", {
-  email: { type: DataTypes.STRING, allowNull: false, unique: true },
-  passwordHash: { type: DataTypes.STRING, allowNull: false },
-  keyholderEmail: { type: DataTypes.STRING, allowNull: true },
-});
+export const User = sequelize.define(
+  "User",
+  {
+    email: { type: DataTypes.STRING, allowNull: false, unique: true },
+    passwordHash: { type: DataTypes.STRING, allowNull: false },
+    keyholderEmail: { type: DataTypes.STRING, allowNull: true },
+    resetToken: { type: DataTypes.TEXT, allowNull: true },          // for storing the token
+    resetTokenExpiry: { type: DataTypes.BIGINT, allowNull: true }, // for storing expiration timestamp
+  },
+  {
+    tableName: "Users",
+    schema: "public",
+    timestamps: false,
+  }
+);
 
 export const Keyholder = sequelize.define("Keyholder", {
   email: { type: DataTypes.STRING, allowNull: false, unique: true },

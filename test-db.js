@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 //import transporter from "./mailer.js"; // your nodemailer transporter
 import { transporter } from "./mailer.js"; // notice the curly braces
+import { Resend } from "resend";
 
 async function createTestUser() {
   const hash = bcrypt.hashSync("123456", 8);
@@ -269,4 +270,37 @@ async function testForgotPassword() {
   }
   
   // run the function
-  testEmail();
+  //testEmail();
+  const resend = new Resend("re_TBRYzTMs_MsBpn6kVkqTfx21jYeYDs6C8");
+
+async function testResendEmail() {
+  try {
+    const testEmail = "deng_zg@hotmail.com"; // 👈 改成你要测试的邮箱
+    const resetToken = "TEST_RESEND_TOKEN_123";
+
+    const clientUrl = process.env.CLIENT_URL.replace(/\/$/, "");
+    const resetLink = `${clientUrl}/reset-password/${resetToken}`;
+
+    console.log("📧 Sending test email with Resend...");
+
+    const result = await resend.emails.send({
+      from: "Secure IPFS <onboarding@resend.dev>", // Resend 默认允许
+      to: testEmail,
+      subject: "Test Password Reset Email (Resend)",
+      html: `
+        <p>This is a <b>Resend</b> test email.</p>
+        <p>Click here to reset your password:</p>
+        <p><a href="${resetLink}">${resetLink}</a></p>
+      `,
+    });
+
+    console.log("✅ Test email sent successfully!");
+    console.log("Response:", result);
+
+  } catch (err) {
+    console.error("❌ Failed to send test email:", err);
+  }
+}
+
+// run test
+testResendEmail();

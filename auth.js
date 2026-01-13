@@ -2,7 +2,6 @@ import express from "express";
 import { User } from "./db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import nodemailer from "nodemailer";
 import crypto from "crypto";
 
 const router = express.Router();
@@ -80,14 +79,8 @@ router.post("/login", async (req, res) => {
   });
 });
 */
-// create transporter for emails
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+// initialize Resend with API key
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 router.post("/forgot-password", async (req, res) => {
   try {
@@ -95,36 +88,37 @@ router.post("/forgot-password", async (req, res) => {
 
     // fetch user
     const user = await User.findOne({ where: { email } });
-    if (!user) return res.status(404).json({ message: "No user with that email" });
+    if (!user) {
+      return res.status(404).json({ message: "No user with that email" });
+    }
 
     // generate reset token and expiry
     const resetToken = crypto.randomBytes(32).toString("hex");
     const expiry = Date.now() + 15 * 60 * 1000; // 15 minutes
 
-    // assign to user
+    // assign to user and save
     user.resetToken = resetToken;
     user.resetTokenExpiry = expiry;
-
-    // save user
     await user.save();
 
     // construct reset link
-    const clientUrl = process.env.CLIENT_URL.replace(/\/$/, ""); // remove trailing slash
+    const clientUrl = process.env.CLIENT_URL.replace(/\/$/, "");
     const resetLink = `${clientUrl}/reset-password/${resetToken}`;
 
-    // send email
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+    // send email via Resend
+    await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL,
       to: email,
       subject: "Password Reset Request",
       html: `
         <p>You requested a password reset.</p>
-        <p><a href="${resetLink}">Click here</a> to reset your password. 
-        This link expires in 15 minutes.</p>
+        <p><a href="${resetLink}">Click here</a> to reset your password.</p>
+        <p>This link expires in 15 minutes.</p>
       `,
     });
 
     res.json({ message: "Password reset email sent" });
+    console.log(`✅ Password reset email sent to ${email}`);
 
   } catch (err) {
     console.error("❌ Forgot password route failed:", err);

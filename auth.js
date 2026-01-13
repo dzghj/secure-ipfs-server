@@ -3,6 +3,8 @@ import { User } from "./db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import { Resend } from "resend"; // ✅ important
+
 
 const router = express.Router();
 const SECRET = process.env.JWT_SECRET || "supersecret";

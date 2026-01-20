@@ -51,38 +51,50 @@ function encryptBuffer(buffer) {
 /**
  * 🧪 TEST FUNCTION
  */
-async function testEncryptedUpload() {
+async function testEncryptedUpload11() {
   try {
     console.log("🧪 Starting encrypted upload test...");
 
     // ---- Simulated user + file ----
     const userId = 1; // must exist in DB
-    const testFilePath = path.resolve("./test-files/test.txt");
+    // 👉 Path to your test PDF
+    const pdfPath = path.resolve("./test-files/MyWill.pdf");
 
-    if (!fs.existsSync(testFilePath)) {
-      throw new Error("Test file does not exist: test-files/test.txt");
-    }
+    // ✅ Get filename automatically
+    const filename = path.basename(pdfPath);
 
-    const originalFilename = "test.txt";
-    const mimeType = "text/plain";
+    // ✅ Read PDF buffer
+    const fileBuffer = fs.readFileSync(pdfPath);
 
-    // ---- Read plaintext file ----
-    const fileBuffer = fs.readFileSync(testFilePath);
+    // 🔐 Encrypt (same logic as server)
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv(
+      "aes-256-gcm",
+      Buffer.from(process.env.FILE_ENCRYPTION_KEY, "hex"),
+      iv
+    );
 
-    // ---- Encrypt ----
-    const { encrypted, iv, authTag } = encryptBuffer(fileBuffer);
+    const encrypted = Buffer.concat([
+      cipher.update(fileBuffer),
+      cipher.final(),
+    ]);
 
-    // ---- Write encrypted file ----
-    const storedFilename = `${crypto.randomUUID()}.enc`;
-    const encryptedPath = path.join(uploadDir, storedFilename);
+    const authTag = cipher.getAuthTag();
+
+    // 💾 Save encrypted file locally (optional, but useful)
+    const encryptedPath = path.resolve(
+      "./uploads",
+      `${filename}.enc`
+    );
     fs.writeFileSync(encryptedPath, encrypted);
+
 
     // ---- Save DB record ----
    
 
     const record = await FileRecord.create({
         userId,
-        filename: originalFilename,                 // ✅ required by model
+        filename: filename,                 // ✅ required by model
         cid: "bafyFAKECID_TEST_123456",        // ✅ fake CID for test
         sha256Hash: crypto
           .createHash("sha256")
@@ -103,7 +115,105 @@ async function testEncryptedUpload() {
     console.error("❌ Encrypted upload test failed:", err);
   }
 }
+function decryptBuffer(encryptedBuffer, ivHex, authTagHex) {
+    const decipher = crypto.createDecipheriv(
+      ALGORITHM,
+      ENCRYPTION_KEY,
+      Buffer.from(ivHex, "hex")
+    );
+  
+    decipher.setAuthTag(Buffer.from(authTagHex, "hex"));
+  
+    return Buffer.concat([
+      decipher.update(encryptedBuffer),
+      decipher.final(),
+    ]);
+  }
 
+  async function testEncryptedUpload() {
+    try {
+      console.log("🧪 Starting encrypted upload test...");
+  
+      const userId = 1; // must exist
+      const pdfPath = path.resolve("./test-files/MyWill.pdf");
+  
+      // ✅ Auto filename
+      const filename = path.basename(pdfPath);
+  
+      // ✅ Read original PDF
+      const originalBuffer = fs.readFileSync(pdfPath);
+  
+      // 🔐 Encrypt
+      const { encrypted, iv, authTag } = encryptBuffer(originalBuffer);
+  
+      // 💾 Save encrypted file (simulate server storage / IPFS)
+      const encryptedPath = path.resolve("./uploads", `${filename}.enc`);
+      fs.writeFileSync(encryptedPath, encrypted);
+  
+      // 🧾 Save DB record (FAKE CID OK for now)
+      const record = await FileRecord.create({
+        userId,
+        filename,                         // REQUIRED
+        cid: "bafyFAKECID_TEST_123456",    // FAKE CID
+        sha256Hash: crypto
+          .createHash("sha256")
+          .update(originalBuffer)
+          .digest("hex"),
+      });
+  
+      console.log("✅ Upload + encryption successful!");
+      console.log("Record ID:", record.id);
+  
+      // ==================================================
+      // ⬇️ DOWNLOAD + DECRYPT TEST
+      // ==================================================
+  
+      console.log("⬇️ Starting download + decrypt test...");
+  
+      // 📥 Simulate download (read encrypted file)
+      const downloadedEncrypted = fs.readFileSync(encryptedPath);
+  
+      // 🔓 Decrypt
+      const decryptedBuffer = decryptBuffer(
+        downloadedEncrypted,
+        iv,
+        authTag
+      );
+  
+      // 💾 Save decrypted file
+      const decryptedPath = path.resolve(
+        "./downloads",
+        `DECRYPTED_${filename}`
+      );
+  
+      if (!fs.existsSync("./downloads")) {
+        fs.mkdirSync("./downloads");
+      }
+  
+      fs.writeFileSync(decryptedPath, decryptedBuffer);
+  
+      // 🔍 Verify integrity
+      const decryptedHash = crypto
+        .createHash("sha256")
+        .update(decryptedBuffer)
+        .digest("hex");
+  
+      console.log("📄 Original SHA256 :", record.sha256Hash);
+      console.log("📄 Decrypted SHA256:", decryptedHash);
+  
+      if (decryptedHash === record.sha256Hash) {
+        console.log("✅ SUCCESS: Decrypted file matches original!");
+      } else {
+        console.error("❌ ERROR: File integrity mismatch!");
+      }
+  
+      console.log("📁 Decrypted file saved at:", decryptedPath);
+  
+    } catch (err) {
+      console.error("❌ Encrypted upload test failed:", err);
+    }
+  }
+  
 /**
  * ▶️ RUN TEST DIRECTLY
  */

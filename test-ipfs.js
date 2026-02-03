@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import { create } from "ipfs-http-client";
 import { FileRecord } from "./db.js";
 
+
 dotenv.config();
 
 /**
@@ -69,12 +70,32 @@ const ipfs = create({
 /**
  * 🧪 TEST: Encrypt → IPFS → Download → Decrypt
  */
+
+ import { ipfs } from "./ipfs-client.js";
+
+ async function testUpload() {
+   try {
+     const filePath = path.resolve("./test-files/sample.pdf"); // adjust
+     const fileBuffer = fs.readFileSync(filePath);
+ 
+     console.log("⬆️ Uploading file to remote IPFS node...");
+ 
+     const result = await ipfs.add(fileBuffer);
+ 
+     console.log("✅ File uploaded!");
+     console.log("CID:", result.cid.toString());
+   } catch (err) {
+     console.error("❌ Upload failed:", err);
+   }
+ }
+ 
+ testUpload();
 async function testIpfsEncryptedUpload() {
   try {
     console.log("🧪 Starting IPFS encrypted upload test...");
 
     const userId = 1; // must exist
-    const pdfPath = path.resolve("./test-files/MyWill.pdf");
+    const pdfPath = path.resolve("./test-files/imm5644e.pdf");
     const filename = path.basename(pdfPath);
 
     // 📄 Read original file
